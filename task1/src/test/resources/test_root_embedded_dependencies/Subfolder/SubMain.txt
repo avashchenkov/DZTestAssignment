@@ -1,0 +1,3 @@
+Start of sub main.
+*require ‘Subfolder2/SubSubMain.txt’*
+End of sub main.
