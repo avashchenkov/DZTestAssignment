@@ -1,0 +1,3 @@
+Gamma start.
+*require ‘Alpha.txt’*
+Gamma end.

@@ -1,0 +1,3 @@
+Beta start.
+*require ‘Gamma.txt’*
+Beta end.
