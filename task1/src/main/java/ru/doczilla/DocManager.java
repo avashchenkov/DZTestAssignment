@@ -6,11 +6,18 @@ import ru.doczilla.doc.plaintext.model.PlainTextFileModel;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 public class DocManager {
+    /**
+     * Merges all text files in the given directory and its subdirectories.
+     *
+     * @param rootPath the root path to start the search from
+     * @return the merged text files
+     */
     public String mergeTextFiles(Path rootPath) {
-        return null;  //TODO: implement me
+        PlainTextFileLinker linker = new PlainTextFileLinker(rootPath);
+
+        return linker.buildMergedFile();
     }
 
     /**
@@ -21,7 +28,7 @@ public class DocManager {
      */
     public String showMergeOrder(Path rootPath) {
         PlainTextFileLinker linker = new PlainTextFileLinker(rootPath);
-        List<PlainTextFileModel> sortedFiles = linker.buildSortedFileMap();
+        List<PlainTextFileModel> sortedFiles = linker.buildSortedFileList();
         StringBuilder result = new StringBuilder();
 
         for (PlainTextFileModel file : sortedFiles) {

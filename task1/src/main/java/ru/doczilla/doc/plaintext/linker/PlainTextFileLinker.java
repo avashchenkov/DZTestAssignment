@@ -19,7 +19,12 @@ public class PlainTextFileLinker {
         this.rootPath = rootPath;
     }
 
-    public List<PlainTextFileModel> buildSortedFileMap() {
+    /**
+     * Builds a sorted list of files.
+     *
+     * @return the sorted list of files
+     */
+    public List<PlainTextFileModel> buildSortedFileList() {
         FileFinder finder = new FileFinder();
         List<Path> txtFiles = finder.findTxtFilesRecursively(this.rootPath);
         SortedFiles sortedFiles = new SortedFiles();
@@ -32,5 +37,21 @@ public class PlainTextFileLinker {
         }
 
         return sortedFiles.getSortedFiles();
+    }
+
+    /**
+     * Builds a merged file from the sorted files.
+     *
+     * @return the merged file
+     */
+    public String buildMergedFile() {
+        List<PlainTextFileModel> sortedFiles = this.buildSortedFileList();
+        StringBuilder result = new StringBuilder();
+
+        for (PlainTextFileModel file : sortedFiles) {
+            result.append(file.getContent()).append("\n");
+        }
+
+        return result.toString();
     }
 }
