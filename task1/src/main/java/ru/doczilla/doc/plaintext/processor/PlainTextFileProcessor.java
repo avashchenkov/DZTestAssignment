@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,7 +56,7 @@ public class PlainTextFileProcessor {
     }
 
     private Set<String> extractReferences(String content) {
-        Set<String> directives = new HashSet<>();
+        Set<String> directives = new TreeSet<>();
         Pattern pattern = Pattern.compile("require\\s+‘([^’]+)’");
         Matcher matcher = pattern.matcher(content);
 
