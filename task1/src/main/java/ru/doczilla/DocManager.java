@@ -1,10 +1,33 @@
 package ru.doczilla;
 
 
+import ru.doczilla.doc.plaintext.linker.PlainTextFileLinker;
+import ru.doczilla.doc.plaintext.model.PlainTextFileModel;
+
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 public class DocManager {
-    public String mergeTextFilesRecursively(Path rootPath) {
-        return null;
+    public String mergeTextFiles(Path rootPath) {
+        return null;  //TODO: implement me
+    }
+
+    /**
+     * Returns a String as a list of files in the order they should be merged.
+     *
+     * @param rootPath the root path to start the search from
+     * @return a list of files in the order they should be merged
+     */
+    public String showMergeOrder(Path rootPath) {
+        PlainTextFileLinker linker = new PlainTextFileLinker(rootPath);
+        List<PlainTextFileModel> sortedFiles = linker.buildSortedFileMap();
+        StringBuilder result = new StringBuilder();
+
+        for (PlainTextFileModel file : sortedFiles) {
+            result.append(file.getRelativePath()).append("\n");
+        }
+
+        return result.toString();
     }
 }
