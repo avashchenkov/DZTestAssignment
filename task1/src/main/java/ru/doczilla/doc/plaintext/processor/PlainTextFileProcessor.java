@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 import ru.doczilla.doc.plaintext.model.PlainTextFileModel;
 
 public class PlainTextFileProcessor {
-    private Path pathToFile;
+    private final Path pathToFile;
 
     /**
      * Constructs a new PlainTextFileProcessor with the given path to the file.
@@ -36,11 +36,10 @@ public class PlainTextFileProcessor {
         return new PlainTextFileModel(this.pathToFile.toString(), content, references);
     }
 
-    /**
-     * Reads the content of the file.
-     *
-     * @return the content of the file
-     */
+    public Path getPathToFile() {
+        return this.pathToFile;
+    }
+
     private String readContent() {
         StringBuilder content = new StringBuilder();
 
