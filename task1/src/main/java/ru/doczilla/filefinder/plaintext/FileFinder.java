@@ -12,7 +12,7 @@ public class FileFinder {
 
     /**
      * Recursively finds all .txt files in the given root directory and its subdirectories.
-     * @param rootDirPath the path to the root directory
+     * @param rootPath the path to the root directory
      * @return a list of paths representing the .txt files
      */
     public List<Path> findTxtFilesRecursively(Path rootPath) {
