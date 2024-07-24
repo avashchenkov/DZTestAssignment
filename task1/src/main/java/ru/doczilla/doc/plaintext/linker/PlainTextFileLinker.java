@@ -27,10 +27,10 @@ public class PlainTextFileLinker {
     public List<PlainTextFileModel> buildSortedFileList() {
         FileFinder finder = new FileFinder();
         List<Path> txtFiles = finder.findTxtFilesRecursively(this.rootPath);
-        SortedFiles sortedFiles = new SortedFiles();
+        SortedFiles sortedFiles = new SortedFiles(this.rootPath);
 
         for (Path filePath : txtFiles) {
-            PlainTextFileProcessor processor = new PlainTextFileProcessor(filePath);
+            PlainTextFileProcessor processor = new PlainTextFileProcessor(rootPath, filePath);
             PlainTextFileModel fileModel = processor.buildPlainTextFileModel();
 
             sortedFiles.addFile(fileModel);

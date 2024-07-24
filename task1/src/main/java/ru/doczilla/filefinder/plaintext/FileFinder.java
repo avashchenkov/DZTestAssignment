@@ -21,7 +21,7 @@ public class FileFinder {
         try (Stream<Path> paths = Files.walk(rootPath)) {
             txtFiles = paths
                     .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".txt"))
+                    .filter(path -> path.toString().endsWith(".txt"))  //TODO: Get rid of magic strings
                     .collect(Collectors.toList());
         } catch (IOException e) {
             System.err.println("Error reading files: " + e.getMessage());  //TODO: Enhance error handling if needed

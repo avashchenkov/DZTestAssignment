@@ -1,7 +1,6 @@
 package ru.doczilla.doc.plaintext.linker;
 
 import ru.doczilla.doc.plaintext.model.PlainTextFileModel;
-import ru.doczilla.doc.plaintext.processor.PlainTextFileProcessor;
 import ru.doczilla.utils.Pair;
 
 import java.nio.file.Path;
@@ -9,12 +8,14 @@ import java.util.*;
 
 public class SortedFiles {
     private final Map<String, PlainTextFileModel> filesSortedByPath;
+    private final Path rootPath;
 
     /**
      * Constructs a new instance of the empty SortedFiles.
      */
-    public SortedFiles() {
-        this.filesSortedByPath = new TreeMap<>();
+    public SortedFiles(Path rootPath) {
+        this.filesSortedByPath = new HashMap<>();
+        this.rootPath = rootPath;
     }
 
     /**
@@ -35,16 +36,19 @@ public class SortedFiles {
         }
 
         List<PlainTextFileModel> filesSortedByPathAndReferences = new LinkedList<>();
+        HashSet<String> handledFilesAsReferences = new HashSet<>();
 
         for (PlainTextFileModel file : this.filesSortedByPath.values()) {
+            if (handledFilesAsReferences.contains(file.getRelativePath())) {
+                continue;
+            }
+
             for (String ref : file.getReferences()) {
                 if (ref.compareTo(file.getRelativePath()) > 0) {
-                    Path pathToFile = Path.of(ref);
-                    PlainTextFileProcessor processor = new PlainTextFileProcessor(pathToFile);
-                    PlainTextFileModel fileModel = processor.buildPlainTextFileModel();
+                    PlainTextFileModel fileModel = this.filesSortedByPath.get(ref);
 
                     filesSortedByPathAndReferences.add(fileModel);
-                    this.filesSortedByPath.remove(ref);
+                    handledFilesAsReferences.add(ref);
                 }
             }
 

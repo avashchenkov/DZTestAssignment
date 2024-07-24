@@ -14,14 +14,16 @@ import ru.doczilla.doc.plaintext.model.PlainTextFileModel;
 
 public class PlainTextFileProcessor {
     private final Path pathToFile;
+    private final Path rootPath;
 
     /**
      * Constructs a new PlainTextFileProcessor with the given path to the file.
      *
      * @param pathToFile
      */
-    public PlainTextFileProcessor(Path pathToFile) {
+    public PlainTextFileProcessor(Path rootPath, Path pathToFile) {
         this.pathToFile = pathToFile;
+        this.rootPath = rootPath;
     }
 
     /**
@@ -34,10 +36,6 @@ public class PlainTextFileProcessor {
         Set<String> references = this.extractReferences();
 
         return new PlainTextFileModel(this.pathToFile.toString(), content, references);
-    }
-
-    public Path getPathToFile() {
-        return this.pathToFile;
     }
 
     private String readContent() {
@@ -61,7 +59,7 @@ public class PlainTextFileProcessor {
         Matcher matcher = pattern.matcher(content);
 
         while (matcher.find()) {
-            directives.add(matcher.group(1));
+            directives.add(this.rootPath.toString() + "/" + matcher.group(1) + ".txt");  //TODO: Parameterize the file extension and build the path properly
         }
 
         return directives;
