@@ -45,12 +45,31 @@ Phasellus eget tellus ac risus iaculis feugiat nec in eros. Aenean in luctus ant
 
     @Test
     void testShowMergeOrderFromRootFolder() {
-        Path testFolderPath = Paths.get(TEST_RESOURCES_PATH, "test_root_embedded_dependencies");
+        Path testFolderPath = null;
+
+        try {
+            testFolderPath = Paths.get(ClassLoader.getSystemResource("test_root_embedded_dependencies").toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
 
         DocManager manager = new DocManager();
-        String result = manager.showMergeOrder(testFolderPath);
+        String result = manager.mergeTextFiles(testFolderPath);
 
-        assertEquals("expected order", result);
+        String expected = """
+Content of sub-sub main file.
+
+Start of sub main.
+*require ‘Subfolder/Subfolder2/SubSubMain’*
+End of sub main.
+
+Start of the main file.
+*require ‘Subfolder/SubMain’*
+End of the main file.
+
+""";
+
+        assertEquals(expected, result);
     }
 
     @Test

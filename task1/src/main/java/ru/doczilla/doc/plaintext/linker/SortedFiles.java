@@ -6,6 +6,10 @@ import ru.doczilla.utils.Pair;
 import java.nio.file.Path;
 import java.util.*;
 
+
+/**
+ * Represents a collection of files sorted by their paths and then by their internal references.
+ */
 public class SortedFiles {
     private final Map<String, PlainTextFileModel> filesSortedByPath;
     private final Path rootPath;
@@ -14,7 +18,7 @@ public class SortedFiles {
      * Constructs a new instance of the empty SortedFiles.
      */
     public SortedFiles(Path rootPath) {
-        this.filesSortedByPath = new HashMap<>();
+        this.filesSortedByPath = new TreeMap<>();
         this.rootPath = rootPath;
     }
 
@@ -38,27 +42,34 @@ public class SortedFiles {
         List<PlainTextFileModel> filesSortedByPathAndReferences = new LinkedList<>();
         HashSet<String> handledFilesAsReferences = new HashSet<>();
 
-        for (PlainTextFileModel file : this.filesSortedByPath.values()) {
+        for (PlainTextFileModel file : this.filesSortedByPath.values()) {  // TODO: consider merging it with the recursive cyclic dependency check
             if (handledFilesAsReferences.contains(file.getRelativePath())) {
                 continue;
             }
 
-            for (String ref : file.getReferences()) {
-                if (ref.compareTo(file.getRelativePath()) > 0) {
-                    PlainTextFileModel fileModel = this.filesSortedByPath.get(ref);
-
-                    filesSortedByPathAndReferences.add(fileModel);
-                    handledFilesAsReferences.add(ref);
-                }
-            }
-
+            reorderDependenciesRecursively(file, filesSortedByPathAndReferences, handledFilesAsReferences);
             filesSortedByPathAndReferences.add(file);
         }
 
         return filesSortedByPathAndReferences;
     }
 
-    private Pair<Boolean, List<PlainTextFileModel>> hasCyclicDependency() {
+    private void reorderDependenciesRecursively(PlainTextFileModel file,
+                                           List<PlainTextFileModel> filesSortedByPathAndReferences,
+                                           HashSet<String> handledFilesAsReferences) {
+        for (String ref : file.getReferences()) {
+            if (ref.compareTo(file.getRelativePath()) > 0) {
+                PlainTextFileModel childFile = this.filesSortedByPath.get(ref);
+
+                reorderDependenciesRecursively(childFile, filesSortedByPathAndReferences, handledFilesAsReferences);
+
+                filesSortedByPathAndReferences.add(childFile);
+                handledFilesAsReferences.add(ref);
+            }
+        }
+    }
+
+    private Pair<Boolean, List<PlainTextFileModel>> hasCyclicDependency() {  //TODO: move it to a separate class
         Map<String, PlainTextFileModel> checkedFiles = new HashMap<>(this.filesSortedByPath.size());
 
         for (String ref : this.filesSortedByPath.keySet()) {
@@ -80,7 +91,7 @@ public class SortedFiles {
         }
 
         PlainTextFileModel file = this.filesSortedByPath.get(ref);
-        checkedFiles.put(ref, file);
+        checkedFiles.put(ref, file);  // TODO: check for self reference, if it works or not
         trace.add(file);
 
         for (String childRef : file.getReferences()) {
