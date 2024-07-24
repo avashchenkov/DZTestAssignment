@@ -1,6 +1,6 @@
 package ru.doczilla.doc.plaintext.linker;
 
-import ru.doczilla.doc.plaintext.filefinder.FileFinder;
+import ru.doczilla.filefinder.plaintext.FileFinder;
 import ru.doczilla.doc.plaintext.model.PlainTextFileModel;
 import ru.doczilla.doc.plaintext.processor.PlainTextFileProcessor;
 
