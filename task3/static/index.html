@@ -7,10 +7,78 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <style>
+        body, html {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #ECECEC;
+            height: 100%;
+            width: 100%;
+        }
+        #search-area, #calendar, #buttons {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 280px;
+            background: #FFFFFF;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+        #calendar {
+            top: 140px;
+        }
+        #buttons {
+            top: 390px;
+            display: flex;
+            flex-direction: column;
+        }
+        #todos-header {
+            position: absolute;
+            left: 320px;
+            top: 10px;
+            width: calc(100% - 340px);
+        }
+        #todos-list {
+            position: absolute;
+            left: 320px;
+            top: 70px;
+            width: calc(100% - 340px);
+            background: #FFFFFF;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
         #todos-list div {
+            background: #F5F5F5;
+            border: 1px solid #CCC;
+            padding: 10px;
             margin-bottom: 10px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 5px;
+        }
+        button, label {
+            background-color: #D2D2D2;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        input[type="text"], input[type="checkbox"] {
+            padding: 10px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        .date-display, .sort-btn {
+            display: inline-block;
+        }
+        .sort-btn {
+            float: right;
+            margin-right: 20px;
         }
     </style>
 </head>
@@ -19,91 +87,60 @@
         <input type="text" id="search-box" placeholder="Поиск по названию...">
         <button id="search-btn">Поиск</button>
     </div>
-    <div id="calendar"></div>
-    <button id="today-btn">Сегодня</button>
-    <button id="week-btn">На неделю</button>
-    <label>
-        <input type="checkbox" id="uncompleted-tasks"> Только невыполненные
-    </label>
+    <div id="calendar">
+        <div id="datepicker"></div>
+    </div>
+    <div id="buttons">
+        <button id="today-btn">Сегодня</button>
+        <button id="week-btn">На неделю</button>
+        <label>
+            <input type="checkbox" id="uncompleted-tasks"> Только невыполненные
+        </label>
+    </div>
+    <div id="todos-header">
+        <span class="date-display">Дата: <span id="current-date"></span></span>
+        <button class="sort-btn" onclick="sortTodos()">Сортировать по дате</button>
+    </div>
     <div id="todos-list"></div>
 
     <script>
+    let todos = [];
+    let isAscending = true;
+
     $(document).ready(function() {
-        $("#calendar").datepicker({
+        $("#datepicker").datepicker({
             onSelect: function(dateText) {
-                const date = new Date(dateText);
-                loadTodosByDate(date.toISOString().split('T')[0]);
+                $("#current-date").text(dateText);
+                filterTodosByDate(dateText);
             }
         });
 
-        $("#today-btn").click(function() {
-            const today = new Date().toISOString().split('T')[0];
-            loadTodosByDate(today);
-        });
-
-        $("#week-btn").click(function() {
-            loadTodosForCurrentWeek();
-        });
-
-        $("#search-btn").click(function() {
-            const query = $("#search-box").val();
-            searchTodos(query);
-        });
-
-        $("#uncompleted-tasks").change(function() {
-            loadTodos();
-        });
+        loadTodos(); // Load todos when page loads
 
         function loadTodos() {
-            let url = 'http://127.0.0.1:5000/todos';
-            if ($("#uncompleted-tasks").is(':checked')) {
-                url += '?status=false';
-            }
-            $.get(url, function(data) {
-                displayTodos(data);
+            $.get('http://127.0.0.1:5000/todos', function(data) {
+                todos = data; // Assuming data is an array of todos
+                displayTodos();
             });
         }
 
-        function loadTodosByDate(date) {
-            $.get(`http://127.0.0.1:5000/todos/date?from=${date}&to=${date}`, function(data) {
-                displayTodos(data);
-            });
-        }
-
-        function loadTodosForCurrentWeek() {
-            const currentDate = new Date();
-            const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() == 0 ? -6 : 1)));
-            const weekEnd = new Date(weekStart);
-            weekEnd.setDate(weekStart.getDate() + 6);
-
-            $.get(`http://127.0.0.1:5000/todos/date?from=${weekStart.toISOString().split('T')[0]}&to=${weekEnd.toISOString().split('T')[0]}`, function(data) {
-                displayTodos(data);
-            });
-        }
-
-        function searchTodos(query) {
-            $.get(`http://127.0.0.1:5000/todos/find?q=${query}`, function(data) {
-                displayTodos(data);
-            });
-        }
-
-        function displayTodos(todos) {
+        function displayTodos() {
             const todosHTML = todos.map(todo => `
                 <div>
                     <h4>${todo.name}</h4>
                     <p>${todo.shortDesc}</p>
-                    <button onclick="showDetails('${todo.id}')">Подробнее</button>
+                    <span>${todo.timestamp}</span>
+                    <label><input type="checkbox" ${todo.completed ? "checked" : ""} disabled> Completed</label>
                 </div>
             `);
             $("#todos-list").html(todosHTML.join(''));
         }
 
-        function showDetails(id) {
-            const todo = todos.find(t => t.id === id);
-            alert(`Название: ${todo.name}\nОписание: ${todo.fullDesc}`);
+        function sortTodos() {
+            isAscending = !isAscending;
+            todos.sort((a, b) => isAscending ? new Date(a.timestamp) - new Date(b.timestamp) : new Date(b.timestamp) - new Date(a.timestamp));
+            displayTodos();
         }
-
-        loadTodos(); // Initial load of todos
     });
     </script>
 </body>
