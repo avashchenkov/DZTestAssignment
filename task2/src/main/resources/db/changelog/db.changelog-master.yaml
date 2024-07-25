@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: artur_vashchenkov
+      changes:
+        - createTable:
+            tableName: student
+            columns:
+              - column:
+                  name: id
+                  type: serial
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: TEXT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: middle_name
+                  type: TEXT
+              - column:
+                  name: birth_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:  # In a real project, it would be better to use a separate table for groups
+                  name: group_name
+                  type: TEXT
+                  constraints:
+                    nullable: false
