@@ -11,14 +11,12 @@ import java.util.*;
  */
 public class SortedFiles {
     private final Map<String, PlainTextFileModel> filesSortedByPath;
-    private final Path rootPath;
 
     /**
      * Constructs a new instance of the empty SortedFiles.
      */
-    public SortedFiles(Path rootPath) {
+    public SortedFiles() {
         this.filesSortedByPath = new TreeMap<>();
-        this.rootPath = rootPath;
     }
 
     /**
@@ -49,7 +47,7 @@ public class SortedFiles {
         return filesSortedByPathAndReferences;
     }
 
-    private void reorderDependenciesRecursively(PlainTextFileModel file,
+    private void reorderDependenciesRecursively(PlainTextFileModel file,  //TODO: too many parameters
                                                 List<PlainTextFileModel> filesSortedByPathAndReferences,
                                                 HashSet<String> handledFilesAsReferences,
                                                 Set<PlainTextFileModel> recursivelyCheckedFiles) {
