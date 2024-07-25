@@ -13,17 +13,17 @@
 
 <h2>Add Student</h2>
 <form id="addStudentForm">
-    First Name: <input type="text" id="firstName"><br>
-    Last Name: <input type="text" id="lastName"><br>
+    First Name: <input type="text" id="firstName" required><br>
+    Last Name: <input type="text" id="lastName" required><br>
     Middle Name: <input type="text" id="middleName"><br>
-    Birth Date: <input type="date" id="birthDate"><br>
-    Group Name: <input type="text" id="groupName"><br>
+    Birth Date: <input type="date" id="birthDate" required><br>
+    Group Name: <input type="text" id="groupName" required><br>
     <button type="button" onclick="addStudent()">Add Student</button>
 </form>
 
 <h2>Delete Student</h2>
 <form id="deleteStudentForm">
-    Student ID: <input type="number" id="studentId"><br>
+    Student ID: <input type="number" id="studentId" required><br>
     <button type="button" onclick="deleteStudent()">Delete Student</button>
 </form>
 
