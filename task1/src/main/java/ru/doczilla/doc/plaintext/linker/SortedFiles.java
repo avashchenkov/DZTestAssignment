@@ -2,7 +2,6 @@ package ru.doczilla.doc.plaintext.linker;
 
 import ru.doczilla.doc.plaintext.model.PlainTextFileModel;
 
-import java.nio.file.Path;
 import java.util.*;
 
 
