@@ -10,6 +10,15 @@ public class Student {
     private LocalDate birthDate;
     private String groupName;
 
+    public Student(Long id, String firstName, String lastName, String middleName, LocalDate birthDate, String groupName) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.middleName = middleName;
+        this.birthDate = birthDate;
+        this.groupName = groupName;
+    }
+
     public Long getId() {
         return id;
     }
