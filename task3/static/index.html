@@ -6,23 +6,104 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <style>
+        #todos-list div {
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
-    <div id="todos"></div>
+    <div id="search-area">
+        <input type="text" id="search-box" placeholder="Поиск по названию...">
+        <button id="search-btn">Поиск</button>
+    </div>
+    <div id="calendar"></div>
+    <button id="today-btn">Сегодня</button>
+    <button id="week-btn">На неделю</button>
+    <label>
+        <input type="checkbox" id="uncompleted-tasks"> Только невыполненные
+    </label>
+    <div id="todos-list"></div>
 
     <script>
-    $(function() {
-        $.ajax({
-            url: 'http://127.0.0.1:5000/todos',
-            type: 'GET',
-            success: function(data) {
-                const todos = data.map(todo => `<div>${todo.name}: ${todo.shortDesc}</div>`);
-                $('#todos').html(todos.join(''));
-            },
-            error: function(error) {
-                console.error('Error fetching todos:', error);
+    $(document).ready(function() {
+        $("#calendar").datepicker({
+            onSelect: function(dateText) {
+                const date = new Date(dateText);
+                loadTodosByDate(date.toISOString().split('T')[0]);
             }
         });
+
+        $("#today-btn").click(function() {
+            const today = new Date().toISOString().split('T')[0];
+            loadTodosByDate(today);
+        });
+
+        $("#week-btn").click(function() {
+            loadTodosForCurrentWeek();
+        });
+
+        $("#search-btn").click(function() {
+            const query = $("#search-box").val();
+            searchTodos(query);
+        });
+
+        $("#uncompleted-tasks").change(function() {
+            loadTodos();
+        });
+
+        function loadTodos() {
+            let url = 'http://127.0.0.1:5000/todos';
+            if ($("#uncompleted-tasks").is(':checked')) {
+                url += '?status=false';
+            }
+            $.get(url, function(data) {
+                displayTodos(data);
+            });
+        }
+
+        function loadTodosByDate(date) {
+            $.get(`http://127.0.0.1:5000/todos/date?from=${date}&to=${date}`, function(data) {
+                displayTodos(data);
+            });
+        }
+
+        function loadTodosForCurrentWeek() {
+            const currentDate = new Date();
+            const weekStart = new Date(currentDate.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() == 0 ? -6 : 1)));
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+
+            $.get(`http://127.0.0.1:5000/todos/date?from=${weekStart.toISOString().split('T')[0]}&to=${weekEnd.toISOString().split('T')[0]}`, function(data) {
+                displayTodos(data);
+            });
+        }
+
+        function searchTodos(query) {
+            $.get(`http://127.0.0.1:5000/todos/find?q=${query}`, function(data) {
+                displayTodos(data);
+            });
+        }
+
+        function displayTodos(todos) {
+            const todosHTML = todos.map(todo => `
+                <div>
+                    <h4>${todo.name}</h4>
+                    <p>${todo.shortDesc}</p>
+                    <button onclick="showDetails('${todo.id}')">Подробнее</button>
+                </div>
+            `);
+            $("#todos-list").html(todosHTML.join(''));
+        }
+
+        function showDetails(id) {
+            const todo = todos.find(t => t.id === id);
+            alert(`Название: ${todo.name}\nОписание: ${todo.fullDesc}`);
+        }
+
+        loadTodos(); // Initial load of todos
     });
     </script>
 </body>
