@@ -74,11 +74,24 @@ End of the main file.
 
     @Test
     void testCyclicDependencyHandling() {
-        Path testFolderPath = Paths.get(TEST_RESOURCES_PATH, "test_root_cyclic_dependencies");
+        Path testFolderPath = null;
+
+        try {
+            testFolderPath = Paths.get(ClassLoader.getSystemResource("test_root_cyclic_dependencies").toURI());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
 
         DocManager manager = new DocManager();
-        Exception exception = assertThrows(RuntimeException.class, () -> manager.mergeTextFiles(testFolderPath));
+        String result = manager.mergeTextFiles(testFolderPath);
 
-        assertTrue(exception.getMessage().contains("Cyclic dependency detected"));
+        String expected = """
+Cyclic dependency detected:
+/Users/artur/space/dev/DZTestAssignment/task1/target/test-classes/test_root_cyclic_dependencies/Beta.txt ->
+/Users/artur/space/dev/DZTestAssignment/task1/target/test-classes/test_root_cyclic_dependencies/Gamma.txt ->
+/Users/artur/space/dev/DZTestAssignment/task1/target/test-classes/test_root_cyclic_dependencies/Alpha.txt ->
+/Users/artur/space/dev/DZTestAssignment/task1/target/test-classes/test_root_cyclic_dependencies/Alpha.txt""";
+
+        assertEquals(expected, result);
     }
 }

@@ -1,7 +1,6 @@
 package ru.doczilla.doc.plaintext.linker;
 
 import ru.doczilla.doc.plaintext.model.PlainTextFileModel;
-import ru.doczilla.utils.Pair;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -33,21 +32,17 @@ public class SortedFiles {
     }
 
     public List<PlainTextFileModel> getSortedFiles() throws IllegalStateException {
-        Pair<Boolean, List<PlainTextFileModel>> cyclicDependencyReport = hasCyclicDependency();
-
-        if (cyclicDependencyReport.getKey()) {
-            throw new IllegalStateException("Cyclic dependency detected: " + cyclicDependencyReport.getValue());
-        }
-
         List<PlainTextFileModel> filesSortedByPathAndReferences = new LinkedList<>();
         HashSet<String> handledFilesAsReferences = new HashSet<>();
 
-        for (PlainTextFileModel file : this.filesSortedByPath.values()) {  // TODO: consider merging it with the recursive cyclic dependency check
+        for (PlainTextFileModel file : this.filesSortedByPath.values()) {
             if (handledFilesAsReferences.contains(file.getRelativePath())) {
                 continue;
             }
 
-            reorderDependenciesRecursively(file, filesSortedByPathAndReferences, handledFilesAsReferences);
+            Set<PlainTextFileModel> recursivelyCheckedFiles = new HashSet<>();
+
+            reorderDependenciesRecursively(file, filesSortedByPathAndReferences, handledFilesAsReferences, recursivelyCheckedFiles);
             filesSortedByPathAndReferences.add(file);
         }
 
@@ -55,13 +50,22 @@ public class SortedFiles {
     }
 
     private void reorderDependenciesRecursively(PlainTextFileModel file,
-                                           List<PlainTextFileModel> filesSortedByPathAndReferences,
-                                           HashSet<String> handledFilesAsReferences) {
-        for (String ref : file.getReferences()) {
-            if (ref.compareTo(file.getRelativePath()) > 0) {
-                PlainTextFileModel childFile = this.filesSortedByPath.get(ref);
+                                                List<PlainTextFileModel> filesSortedByPathAndReferences,
+                                                HashSet<String> handledFilesAsReferences,
+                                                Set<PlainTextFileModel> recursivelyCheckedFiles) {
+        recursivelyCheckedFiles.add(file);
 
-                reorderDependenciesRecursively(childFile, filesSortedByPathAndReferences, handledFilesAsReferences);
+        for (String ref : file.getReferences()) {
+            PlainTextFileModel childFile = this.filesSortedByPath.get(ref);
+
+            if (recursivelyCheckedFiles.contains(childFile)) {
+                throw new IllegalStateException(
+                        buildCallTraceErrorMessage(recursivelyCheckedFiles, childFile)
+                );
+            }
+
+            if (ref.compareTo(file.getRelativePath()) > 0) {
+                reorderDependenciesRecursively(childFile, filesSortedByPathAndReferences, handledFilesAsReferences, recursivelyCheckedFiles);
 
                 filesSortedByPathAndReferences.add(childFile);
                 handledFilesAsReferences.add(ref);
@@ -69,37 +73,15 @@ public class SortedFiles {
         }
     }
 
-    private Pair<Boolean, List<PlainTextFileModel>> hasCyclicDependency() {  //TODO: move it to a separate class
-        Map<String, PlainTextFileModel> checkedFiles = new HashMap<>(this.filesSortedByPath.size());
+    private String buildCallTraceErrorMessage(Set<PlainTextFileModel> recursivelyCheckedFiles, PlainTextFileModel cyclicallyHandledFile) {
+        StringBuilder errorMessage = new StringBuilder("Cyclic dependency detected:\n");
 
-        for (String ref : this.filesSortedByPath.keySet()) {
-            List<PlainTextFileModel> trace = new LinkedList<>();
-
-            if (hasCyclicDependency(ref, checkedFiles, trace)) {
-                return new Pair<>(true, trace);
-            }
+        for (PlainTextFileModel file : recursivelyCheckedFiles) {
+            errorMessage.append(file.getRelativePath()).append(" ->\n");
         }
 
-        return new Pair<>(false, new LinkedList<>());
-    }
+        errorMessage.append(cyclicallyHandledFile.getRelativePath());
 
-    private boolean hasCyclicDependency(String ref,
-                                        Map<String, PlainTextFileModel> checkedFiles,
-                                        List<PlainTextFileModel> trace) {
-        if (checkedFiles.containsKey(ref)) {
-            return false;
-        }
-
-        PlainTextFileModel file = this.filesSortedByPath.get(ref);
-        checkedFiles.put(ref, file);  // TODO: check for self reference, if it works or not
-        trace.add(file);
-
-        for (String childRef : file.getReferences()) {
-            return hasCyclicDependency(childRef, checkedFiles, trace);
-        }
-
-        trace.remove(file);
-
-        return false;
+        return errorMessage.toString();
     }
 }
